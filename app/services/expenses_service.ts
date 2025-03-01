@@ -1,6 +1,8 @@
 import { inject } from '@adonisjs/core'
 import { DatabaseTransactionService } from './db/database_transaction_service.js'
 import Expense from '#models/expense'
+import fs from 'node:fs'
+import csvParser from 'fast-csv'
 
 interface CreateExpensesPayload {
   description: string
@@ -30,6 +32,38 @@ export class ExpenseService {
         error: error,
       }
     }
+  }
+
+  async processCsv(filePath: string) {
+    const trx = await this.db.start()
+    const expenses: Partial<Expense>[] = []
+
+    return new Promise((resolve, reject) => {
+      fs.createReadStream(filePath)
+        .pipe(csvParser.parse({ headers: true }))
+        .on('error', async (error) => {
+          await trx.rollback()
+          reject({ success: false, message: 'Error reading CSV file', error })
+        })
+        .on('data', (row) => {
+          console.log('data', row)
+          expenses.push({
+            description: row.description,
+            amount: Number.parseFloat(row.amount),
+            category: row.category,
+          })
+        })
+        .on('end', async () => {
+          try {
+            await Expense.createMany(expenses, { client: trx })
+            await trx.commit()
+            resolve({ success: true, message: 'CSV processed successfully', data: expenses })
+          } catch (error) {
+            await trx.rollback()
+            reject({ success: false, message: 'Failed to process CSV', error })
+          }
+        })
+    })
   }
 
   async createExpenses(payload: CreateExpensesPayload) {
