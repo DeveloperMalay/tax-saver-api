@@ -1,4 +1,3 @@
-import User from '#models/user'
 import { UserService } from '#services/users_service'
 import { loginValidator, registerValidator } from '#validators/user'
 import { inject } from '@adonisjs/core'
