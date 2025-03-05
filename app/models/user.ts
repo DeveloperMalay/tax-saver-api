@@ -5,7 +5,6 @@ import { BaseModel, beforeCreate, column } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import { v4 as uuidv4 } from 'uuid'
-import mail from '@adonisjs/mail/services/main'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -17,7 +16,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare id: string
 
   @column()
-  declare fullName: string | null
+  declare username: string
 
   @column()
   declare email: string
@@ -56,14 +55,5 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @beforeCreate()
   public static async assignVerificationToken(user: User) {
     user.verificationToken = uuidv4()
-  }
-
-  public async sendVerificationEmail() {
-    await mail.send((message) => {
-      message
-        .to(this.email)
-        .subject('Verify Your Email')
-        .htmlView('emails/verify_email', { token: this.verificationToken })
-    })
   }
 }
