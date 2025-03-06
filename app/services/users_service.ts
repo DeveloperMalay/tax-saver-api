@@ -51,7 +51,7 @@ export class UserService {
       }
 
       user.isVerified = true
-      //   user.verificationToken = null
+      user.verificationToken = undefined
       await user.useTransaction(trx).save()
       await trx.commit()
 
