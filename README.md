@@ -1,2 +1,2 @@
-<h1 align="start">Adonis Js Project using Typescript</h1>
+<h1 align="center">Adonis Js Project using Typescript</h1>
 
